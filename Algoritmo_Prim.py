@@ -46,27 +46,6 @@ class Graph:
                     heapq.heappush(min_heap, (next_weight, v))
         return mst, total_cost, steps
 
-    def prim_max(self, start):
-        max_heap = [(-weight, start) for weight, start in self.edges[start]]
-        heapq.heapify(max_heap)
-        mst = []
-        visited = {start}
-        total_cost = 0
-        steps = []
-        while max_heap:
-            weight, u = heapq.heappop(max_heap)
-            weight = -weight
-            if u in visited:
-                continue
-            visited.add(u)
-            mst.append((weight, u))
-            total_cost += weight
-            steps.append((list(visited), list(max_heap)))
-            for next_weight, v in self.edges[u]:
-                if v not in visited:
-                    heapq.heappush(max_heap, (-next_weight, v))
-        return mst, total_cost, steps
-
 class PrimApp:
     def __init__(self, root):
         self.root = root
@@ -74,14 +53,8 @@ class PrimApp:
         self.create_widgets()
 
     def create_widgets(self):
-        self.root.title("Algoritmo de Prim - AEM Mínimo y Máximo")
+        self.root.title("Algoritmo de Prim - Árbol de Expansión Mínima")
         self.root.geometry("600x500")
-
-        self.algo_label = ttk.Label(self.root, text="Seleccione el algoritmo:")
-        self.algo_label.pack(pady=5)
-        self.algo_combobox = ttk.Combobox(self.root, values=["Prim Mínimo", "Prim Máximo"])
-        self.algo_combobox.pack(pady=5)
-        self.algo_combobox.current(0)
 
         self.edge_frame = ttk.Frame(self.root)
         self.edge_frame.pack(pady=5)
@@ -145,11 +118,7 @@ class PrimApp:
         if start not in self.graph.vertices:
             messagebox.showerror("Error", "El vértice inicial no existe en el grafo.")
             return
-        algorithm = self.algo_combobox.get()
-        if algorithm == "Prim Mínimo":
-            mst, total_cost, steps = self.graph.prim_min(start)
-        else:
-            mst, total_cost, steps = self.graph.prim_max(start)
+        mst, total_cost, steps = self.graph.prim_min(start)
         
         self.result_text.delete(1.0, tk.END)
         self.result_text.insert(tk.END, f"Árbol de Expansión con costo total: {total_cost}\n")
@@ -158,7 +127,7 @@ class PrimApp:
             self.result_text.insert(tk.END, f"{u} - peso: {weight}\n")
 
         self.show_graph(initial=True)
-        self.show_steps(steps, algorithm, start)
+        self.show_steps(steps, "Prim Mínimo", start)
 
     def show_graph(self, initial=True, mst=None):
         G = nx.Graph()
@@ -174,7 +143,7 @@ class PrimApp:
             labels = nx.get_edge_attributes(G, 'weight')
             nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
         else:
-            title = "Árbol de Expansión Mínima/Máxima"
+            title = "Árbol de Expansión Mínima"
             mst_edges = [(u, v) for weight, u in mst]
             mst_graph = nx.Graph()
             for u in self.graph.edges:
